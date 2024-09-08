@@ -2,7 +2,8 @@
   "name": "whatsapp",
   "main": "expo-router/entry",
   "version": "1.0.0",
-  "type": "module",
+ 
+  
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
@@ -11,6 +12,7 @@
     "web": "expo start --web",
     "test": "jest --watchAll",
     "lint": "expo lint"
+    
   },
   "jest": {
     "preset": "jest-expo"

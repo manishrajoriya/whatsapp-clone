@@ -1,9 +1,29 @@
-import { View, Text, KeyboardAvoidingView, Platform, Linking, StyleSheet, TouchableOpacity } from 'react-native'
+import { View, Text, KeyboardAvoidingView, Platform, Linking, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native'
 import React, { useState } from 'react'
 import { useRouter } from 'expo-router'
 import Colors from '@/constants/Colors'
 import { Ionicons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import MaskInput from 'react-native-mask-input';
+
+const GER_PHONE = [
+  `+`,
+  /\d/,
+  /\d/,
+  ' ',
+  /\d/,
+  /\d/,
+  /\d/,
+  ' ',
+  /\d/,
+  /\d/,
+  /\d/,
+  /\d/,
+  /\d/,
+  /\d/,
+  /\d/,
+  /\d/,
+];
 
 const Page = () => {
     const [loading, setLoading] = useState(false)
@@ -17,7 +37,11 @@ const Page = () => {
         Linking.openURL(`https://wa.me/${phoneNumber}`)
     }
     const sendOtp = async () => {
-
+        setLoading(true);
+        setTimeout(() => {
+            setLoading(false);
+            router.push(`/verify/${phoneNumber}`)
+        }, 2000);
     }
     const trySignIn = async () => {
 
@@ -25,6 +49,12 @@ const Page = () => {
   return (
     <KeyboardAvoidingView style={{ flex: 1 }}>
         <View style={styles.container}>
+            {loading && (
+                <View style={[StyleSheet.absoluteFill, styles.loading]}>
+                    <ActivityIndicator size='large' color={Colors.primary} />
+                    <Text style={{ fontSize: 18, padding: 10}}>Sending OTP...</Text>
+                </View>
+            )}
             <Text style={styles.description}>
                 WhatsApp will need to verify your phone number. We will send you a one-time password via SMS.
             </Text>
@@ -36,13 +66,26 @@ const Page = () => {
                     <Ionicons name='chevron-forward' size={20} color={Colors.gray} />
                 </View>
                 <View style={styles.separator} />
+
+                <MaskInput
+                    value={phoneNumber}
+                    style={styles.input}    
+                    onChangeText={(masked, unmasked) => {
+                        setPhoneNumber(masked)
+                    }}
+                    mask={GER_PHONE}
+                    placeholder='+91 your phone number'
+                    placeholderTextColor={Colors.gray}
+                    keyboardType='numeric'
+                    autoFocus={true}
+                />
             </View>
             <Text style={styles.label}>
                 You must be {' '}
                 <Text style={styles.link}>
                     at least 16 years old
                 </Text>
-                {' '}to use WhatsApp. Learn how WhatsApp works with your data in our{' '}
+                    {' '}to use WhatsApp. Learn how WhatsApp works with your data in our{' '}
                 <Text style={styles.link}>
                     Privacy Policy
                 </Text>
@@ -126,6 +169,20 @@ const styles = StyleSheet.create({
     enabled: {
         backgroundColor: Colors.primary,
         color: '#fff'
+    },
+    input: {
+        backgroundColor: '#fff',
+        width: '100%',
+        padding: 6,
+        fontSize: 16,
+        marginTop: 10,
+    },
+    loading: {
+        ...StyleSheet.absoluteFillObject,
+        zIndex: 10,
+        backgroundColor: '#fff',
+        justifyContent: 'center',
+        alignItems: 'center',
     }
 })
 
