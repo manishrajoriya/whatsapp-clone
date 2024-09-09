@@ -22,8 +22,11 @@ const Page = () => {
 
     useEffect(() => {
         if(code.length === 6) {
-            console.log(code)
-            //verify code
+            if(signin === 'true') {
+                verifySignIn();
+            } else {
+                verifyCode();
+            }
         }
     }, [code])
 
@@ -56,7 +59,8 @@ const Page = () => {
         rootStyle={styles.codeFieldRoot}
         keyboardType="number-pad"
         textContentType="oneTimeCode"
-        autoComplete={Platform.select({ android: 'sms-otp', default: 'one-time-code' })}
+        // autoComplete={Platform.select({ android: 'sms-otp', default: 'one-time-code' })}
+        autoComplete='sms-otp'
         testID="my-code-input"
         renderCell={({index, symbol, isFocused}) => (
           <View
