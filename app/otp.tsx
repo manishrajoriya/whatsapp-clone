@@ -1,10 +1,12 @@
-import { View, Text, KeyboardAvoidingView, Platform, Linking, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { View, Text, KeyboardAvoidingView, Platform, Linking, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native'
 import React, { useState } from 'react'
 import { useRouter } from 'expo-router'
 import Colors from '@/constants/Colors'
 import { Ionicons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import MaskInput from 'react-native-mask-input';
+import { isClerkAPIResponseError, useSignIn, useSignUp } from '@clerk/clerk-expo'
+
 
 const GER_PHONE = [
   `+`,
@@ -32,19 +34,49 @@ const Page = () => {
     const router = useRouter()
     const keyboardVerticalOffset = Platform.OS === 'ios' ? 90 : 0
     const {bottom} = useSafeAreaInsets()
+    const {signIn} = useSignIn()
+    const {setActive, signUp} = useSignUp()
 
-    const openLink = () => {
-        Linking.openURL(`https://wa.me/${phoneNumber}`)
-    }
     const sendOtp = async () => {
         setLoading(true);
-        setTimeout(() => {
-            setLoading(false);
-            router.push(`/verify/${phoneNumber}`)
-        }, 2000);
+       try {
+        await signUp!.create({
+            phoneNumber
+        })
+
+        signUp!.preparePhoneNumberVerification()
+        router.push(`/verify/${phoneNumber}`)
+       } catch (error) {
+        console.log(error)
+        if(isClerkAPIResponseError(error) ){
+            if(error.errors[0].code === 'form_identifier_exists'){
+                console.log("user already exists");
+                await trySignIn()
+            }else{
+                setLoading(false)
+                Alert.alert('Error', error.errors[0].message)
+            }
+        }
+       }
     }
     const trySignIn = async () => {
+       const {supportedFirstFactors} = await signIn!.create({
+        identifier: phoneNumber
+       })
 
+       const firstPhoneFactor: any = supportedFirstFactors?.find((factor: any) => {
+        return factor.strategy === 'phone_code'
+       })
+
+       const {phoneNumberId} = firstPhoneFactor
+
+       await signIn!.prepareFirstFactor({
+        strategy: 'phone_code',
+        phoneNumberId
+       })
+
+       router.push(`/verify/${phoneNumber}?signin=true`)
+       setLoading(false)
     }
   return (
     <KeyboardAvoidingView style={{ flex: 1 }}>

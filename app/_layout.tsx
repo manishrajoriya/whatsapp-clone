@@ -68,8 +68,13 @@ export default function RootLayout() {
   useEffect(() => {
     if (!isLoaded) return;
     const inTabsGroup = segment[0] === '(tabs)'
+
+    console.log('isSignedIn changed', isSignedIn);
+    
     if (isSignedIn && !inTabsGroup) {
       router.replace('/(tabs)/chats')
+    }else if (!isSignedIn) {
+      router.replace('/')
     }
   }, [isSignedIn])
 
@@ -77,7 +82,13 @@ export default function RootLayout() {
     return <View/>;
   }
 
-  return <RootLayoutNav />
+  return (
+    <Stack>
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="otp" options={{ headerTitle: 'Enter your phone number', headerTitleAlign: 'center', headerBackVisible: false }} />
+      <Stack.Screen name="verify/[phone]" options={{  headerTitleAlign: 'center', headerBackTitle: 'Edit Number' }} />
+    </Stack>
+  )
 }
 
 
@@ -85,11 +96,7 @@ function RootLayoutNav() {
   return (
     <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
       <ClerkLoaded>
-    <Stack>
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="otp" options={{ headerTitle: 'Enter your phone number', headerTitleAlign: 'center', headerBackVisible: false }} />
-      <Stack.Screen name="verify/[phone]" options={{  headerTitleAlign: 'center', headerBackTitle: 'Edit Number' }} />
-    </Stack>
+      <RootLayout />
     </ClerkLoaded>
     </ClerkProvider>
   )
