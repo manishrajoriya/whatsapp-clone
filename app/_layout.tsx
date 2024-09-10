@@ -1,12 +1,13 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 import * as SecureStore from 'expo-secure-store'
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { ClerkProvider, ClerkLoaded } from '@clerk/clerk-expo'
+import { ClerkProvider, ClerkLoaded, useAuth } from '@clerk/clerk-expo'
+import { View } from 'react-native';
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!
 
 
@@ -42,6 +43,9 @@ const tokenCache = {
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const router = useRouter()
+  const segment = useSegments()
+  const { isSignedIn, isLoaded } = useAuth()
 
    if (!publishableKey) {
   throw new Error(
@@ -61,8 +65,16 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
-  if (!loaded) {
-    return null;
+  useEffect(() => {
+    if (!isLoaded) return;
+    const inTabsGroup = segment[0] === '(tabs)'
+    if (isSignedIn && !inTabsGroup) {
+      router.replace('/(tabs)/chats')
+    }
+  }, [isSignedIn])
+
+  if (!loaded || !isLoaded) {
+    return <View/>;
   }
 
   return <RootLayoutNav />
